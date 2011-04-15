@@ -54,6 +54,7 @@ class buildout {
         } else {
             file { "$name":
                 ensure => absent,
+                force => true,
             }
         }
     }
