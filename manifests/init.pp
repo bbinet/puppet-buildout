@@ -13,6 +13,7 @@ class buildout {
     #
     # Parameters:
     #   $source  - source from which to grab buildout.cfg
+    #   $python  - the python interpreter to use
     #   $ensure  - flag to setup or remove the buildout environment
     #
     # Actions:
@@ -24,10 +25,11 @@ class buildout {
     # Sample Usage:
     #
     #    buildout::venv { "/path/to/buildout_env":
-    #        source  => "puppet:///files/mybuildout.cfg",
+    #        source => "puppet:///files/mybuildout.cfg",
+    #        python => "/path/to/your/python",
     #    }
     #
-    define venv($source, $ensure=present) {
+    define venv($source, $python='python', $ensure=present) {
         if $ensure == present {
             exec { "mkdir -p $name":
                 unless => "test -d $name",
@@ -40,14 +42,14 @@ class buildout {
                 source => $source,
                 require => Exec["mkdir -p $name"],
             }
-            exec { "python $name/bootstrap.py":
+            exec { "${python} $name/bootstrap.py":
                 cwd => $name,
                 require => [File["$name/bootstrap.py"], File["$name/buildout.cfg"]],
                 unless => "test -f $name/bin/buildout",
             }
             exec { "$name/bin/buildout":
                 cwd => $name,
-                require => Exec["python $name/bootstrap.py"],
+                require => Exec["${python} $name/bootstrap.py"],
                 subscribe => File["$name/buildout.cfg"],
                 refreshonly => true,
             }
@@ -59,4 +61,3 @@ class buildout {
         }
     }
 }
-
